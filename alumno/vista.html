@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vista Alumno</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <header>
+    <h2>Vista Alumno - Control Escolar</h2>
+    <button id="logoutBtn">Cerrar sesión</button>
+  </header>
+  <main>
+    <section>
+      <h3>Mis Datos</h3>
+      <div id="datosAlumno"></div>
+    </section>
+    <!-- Se llenará después con más info -->
+  </main>
+  <script type="module">
+    import { auth } from "../firebase.js";
+    import { signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    document.getElementById("logoutBtn").onclick = async () => {
+      await signOut(auth);
+      window.location.href = "../index.html";
+    };
+  </script>
+</body>
+</html>

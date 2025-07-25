@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Control Escolar - Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <header>
+    <h2>Panel Administrador - Control Escolar</h2>
+    <button id="logoutBtn">Cerrar sesión</button>
+  </header>
+  <main>
+    <section>
+      <h3>Alumnos</h3>
+      <form id="alumnoForm">
+        <input type="text" id="numLista" placeholder="Número de lista" required />
+        <input type="text" id="nombreCompleto" placeholder="Nombre completo" required />
+        <input type="number" id="numEquipo" placeholder="Equipo" required />
+        <button type="submit">Agregar Alumno</button>
+      </form>
+      <table id="tablaAlumnos">
+        <thead>
+          <tr>
+            <th>Lista</th><th>Nombre</th><th>Equipo</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Se llenará con JS -->
+        </tbody>
+      </table>
+    </section>
+    <!-- Agrega más secciones para equipos, evaluaciones, etc -->
+  </main>
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
