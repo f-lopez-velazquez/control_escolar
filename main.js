@@ -1,5 +1,12 @@
 import { auth, signInWithEmailAndPassword } from "./firebase.js";
 
+// PWA install
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js');
+  });
+}
+
 const loginForm = document.getElementById("loginForm");
 const loginError = document.getElementById("loginError");
 
@@ -12,7 +19,7 @@ loginForm.addEventListener("submit", async (e) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Acceso administrador por correo específico
+    // Admin
     if (user.email === "fco.lopezvelazquez@ugto.mx") {
       window.location.href = "admin/dashboard.html";
     } else {

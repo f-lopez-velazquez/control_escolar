@@ -13,6 +13,15 @@
   </header>
   <main>
     <section>
+      <h3>Materias</h3>
+      <form id="materiaForm">
+        <input type="text" id="nombreMateria" placeholder="Nombre de la materia" required />
+        <button type="submit">Agregar Materia</button>
+      </form>
+      <select id="materiasSelect"></select>
+      <button id="exportarListaBtn">Exportar alumnos a otra materia</button>
+    </section>
+    <section>
       <h3>Alumnos</h3>
       <form id="alumnoForm">
         <input type="text" id="numLista" placeholder="Número de lista" required />
@@ -26,12 +35,53 @@
             <th>Lista</th><th>Nombre</th><th>Equipo</th><th>Acciones</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- Se llenará con JS -->
-        </tbody>
+        <tbody></tbody>
       </table>
     </section>
-    <!-- Agrega más secciones para equipos, evaluaciones, etc -->
+    <section>
+      <h3>Equipos</h3>
+      <form id="equipoForm">
+        <input type="number" id="equipoNum" placeholder="Número de equipo" required />
+        <input type="text" id="encargado" placeholder="Encargado" required />
+        <button type="submit">Agregar Equipo</button>
+      </form>
+      <table id="tablaEquipos">
+        <thead>
+          <tr>
+            <th>Equipo</th><th>Encargado</th><th>Tareas</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section>
+      <h3>Evaluaciones (Rúbrica)</h3>
+      <form id="evaluacionForm">
+        <select id="alumnoEval"></select>
+        <select id="parcialEval">
+          <option value="parcial1">Parcial 1</option>
+          <option value="parcial2">Parcial 2</option>
+          <option value="parcial3">Parcial 3</option>
+          <option value="parcial4">Parcial 4</option>
+        </select>
+        <input type="number" id="calificacionEval" placeholder="Calificación (0-10)" min="0" max="10" step="0.1" required />
+        <button type="submit">Registrar Calificación</button>
+      </form>
+      <table id="tablaEvaluaciones">
+        <thead>
+          <tr>
+            <th>Lista</th><th>Nombre</th>
+            <th>P1</th><th>P2</th><th>P3</th><th>P4</th>
+            <th>Final</th>
+            <th>Deducciones</th>
+            <th>Puntos Extra</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="generarPdfBtn">Generar PDF</button>
+    </section>
   </main>
   <script type="module" src="dashboard.js"></script>
 </body>
