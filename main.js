@@ -1,6 +1,6 @@
 import { auth, signInWithEmailAndPassword } from "./firebase.js";
 
-// PWA install
+// Instala PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js');
@@ -19,8 +19,8 @@ loginForm.addEventListener("submit", async (e) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Admin
-    if (user.email === "fco.lopezvelazquez@gmail.com") {
+    // IMPORTANTE: compara en minúsculas por si acaso hay confusión
+    if (user.email.toLowerCase() === "fco.lopezvelazquez@ugto.mx") {
       window.location.href = "admin/dashboard.html";
     } else {
       window.location.href = "alumno/vista.html";
