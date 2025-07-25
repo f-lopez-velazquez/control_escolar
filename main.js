@@ -20,7 +20,7 @@ loginForm.addEventListener("submit", async (e) => {
     const user = userCredential.user;
 
     // Admin
-    if (user.email === "fco.lopezvelazquez@ugto.mx") {
+    if (user.email === "fco.lopezvelazquez@gmail.com") {
       window.location.href = "admin/dashboard.html";
     } else {
       window.location.href = "alumno/vista.html";
