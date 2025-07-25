@@ -19,8 +19,8 @@ loginForm.addEventListener("submit", async (e) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // IMPORTANTE: compara en minúsculas por si acaso hay confusión
-    if (user.email.toLowerCase() === "fco.lopezvelazquez@ugto.mx") {
+    // Cambia SOLO aquí si necesitas otro correo admin
+    if (user.email.toLowerCase() === "fco.lopezvelazquez@gmail.com") {
       window.location.href = "admin/dashboard.html";
     } else {
       window.location.href = "alumno/vista.html";
