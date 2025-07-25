@@ -9,22 +9,53 @@
 <body>
   <header>
     <h2>Vista Alumno - Control Escolar</h2>
-    <button id="logoutBtn">Cerrar sesión</button>
   </header>
   <main>
     <section>
-      <h3>Bienvenido</h3>
-      <div id="datosAlumno"></div>
-      <p>Aquí próximamente verás tus calificaciones, deducciones y puntos extra.</p>
+      <h3>Alumnos registrados</h3>
+      <select id="materiasSelect"></select>
+      <table id="tablaAlumnos">
+        <thead>
+          <tr>
+            <th>Número de lista</th>
+            <th>Nombre</th>
+            <th>Equipo</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section>
+      <h3>Equipos</h3>
+      <table id="tablaEquipos">
+        <thead>
+          <tr>
+            <th>Número de equipo</th>
+            <th>Encargado</th>
+            <th>Tareas</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section>
+      <h3>Calificaciones</h3>
+      <table id="tablaCalificaciones">
+        <thead>
+          <tr>
+            <th>Número de lista</th>
+            <th>Nombre</th>
+            <th>P1</th>
+            <th>P2</th>
+            <th>P3</th>
+            <th>P4</th>
+            <th>Final</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </section>
   </main>
-  <script type="module">
-    import { auth } from "../firebase.js";
-    import { signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    document.getElementById("logoutBtn").onclick = async () => {
-      await signOut(auth);
-      window.location.href = "../index.html";
-    };
-  </script>
+  <script type="module" src="vista.js"></script>
 </body>
 </html>

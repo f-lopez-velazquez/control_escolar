@@ -12,19 +12,17 @@ const loginError = document.getElementById("loginError");
 
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const email = document.getElementById("email").value.trim();
+  const email = document.getElementById("email").value.trim().toLowerCase();
   const password = document.getElementById("password").value;
 
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+  if (email !== "fco.lopezvelazquez@gmail.com") {
+    loginError.textContent = "Solo el administrador puede iniciar sesión.";
+    return;
+  }
 
-    // Cambia SOLO aquí si necesitas otro correo admin
-    if (user.email.toLowerCase() === "fco.lopezvelazquez@gmail.com") {
-      window.location.href = "admin/dashboard.html";
-    } else {
-      window.location.href = "alumno/vista.html";
-    }
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.href = "admin/dashboard.html";
   } catch (error) {
     loginError.textContent = "Correo o contraseña incorrectos";
   }
