@@ -12,11 +12,10 @@
     <button id="logoutBtn">Cerrar sesión</button>
   </header>
   <main>
-    <!-- Aquí va todo el panel como en los códigos anteriores -->
     <section>
       <h3>Materias</h3>
       <form id="materiaForm">
-        <input type="text" id="nombreMateria" placeholder="Nombre de la materia" required />
+        <input type="text" id="nombreMateria" placeholder="Nombre de la materia" required onfocus="mostrarAyuda('Escribe el nombre de la materia.')" />
         <button type="submit">Agregar Materia</button>
       </form>
       <select id="materiasSelect"></select>
@@ -24,15 +23,23 @@
     <section>
       <h3>Alumnos</h3>
       <form id="alumnoForm">
-        <input type="text" id="numLista" placeholder="Número de lista" required />
-        <input type="text" id="nombreCompleto" placeholder="Nombre completo" required />
-        <input type="number" id="numEquipo" placeholder="Equipo" required />
-        <button type="submit">Agregar Alumno</button>
+        <input type="text" id="numLista" placeholder="Número de lista" required onfocus="mostrarAyuda('Número único de alumno.')" />
+        <input type="text" id="nombreCompleto" placeholder="Nombre completo" required onfocus="mostrarAyuda('Nombre del alumno.')" />
+        <input type="number" id="numEquipo" placeholder="Equipo (debe existir)" required onfocus="mostrarAyuda('Solo puedes asignar equipos existentes.')" />
+        <select id="parcialAsignar">
+          <option value="parcial1">Parcial 1</option>
+          <option value="parcial2">Parcial 2</option>
+          <option value="parcial3">Parcial 3</option>
+          <option value="parcial4">Parcial 4</option>
+        </select>
+        <button type="submit">Agregar/Actualizar Alumno</button>
       </form>
+      <div id="ayudaCampo" class="ayuda-campo"></div>
+      <select id="filtroEquipo"><option value="">Todos los equipos</option></select>
       <table id="tablaAlumnos">
         <thead>
           <tr>
-            <th>Lista</th><th>Nombre</th><th>Equipo</th><th>Acciones</th>
+            <th>Lista</th><th>Nombre</th><th>Equipos (por parcial)</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -41,8 +48,8 @@
     <section>
       <h3>Equipos</h3>
       <form id="equipoForm">
-        <input type="number" id="equipoNum" placeholder="Número de equipo" required />
-        <input type="text" id="encargado" placeholder="Encargado" required />
+        <input type="number" id="equipoNum" placeholder="Número de equipo" required onfocus="mostrarAyuda('Número del equipo, debe ser único.')" />
+        <input type="text" id="encargado" placeholder="Encargado" required onfocus="mostrarAyuda('Nombre del encargado de equipo.')" />
         <button type="submit">Agregar Equipo</button>
       </form>
       <table id="tablaEquipos">
@@ -55,7 +62,7 @@
       </table>
     </section>
     <section>
-      <h3>Evaluaciones (Rúbrica)</h3>
+      <h3>Evaluaciones</h3>
       <form id="evaluacionForm">
         <select id="alumnoEval"></select>
         <select id="parcialEval">
@@ -72,13 +79,39 @@
           <tr>
             <th>Lista</th><th>Nombre</th>
             <th>P1</th><th>P2</th><th>P3</th><th>P4</th>
-            <th>Final</th>
+            <th>Final</th><th>Deducciones</th><th>Extras</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
+      <button class="btn-pdf" id="btnPdf">Exportar PDF (A4)</button>
+    </section>
+    <section>
+      <h3>Deducciones y puntos extra</h3>
+      <form id="formDeduccion">
+        <select id="alumnoDeduccion"></select>
+        <select id="parcialDeduccion">
+          <option value="parcial1">Parcial 1</option>
+          <option value="parcial2">Parcial 2</option>
+          <option value="parcial3">Parcial 3</option>
+          <option value="parcial4">Parcial 4</option>
+        </select>
+        <input type="number" id="cantidadDeduccion" placeholder="Cantidad (+ o -)" required />
+        <input type="text" id="motivoDeduccion" placeholder="Motivo" required />
+        <select id="tipoDeduccion">
+          <option value="deduccion">Deducción (resta)</option>
+          <option value="extra">Punto extra (suma)</option>
+        </select>
+        <button type="submit">Agregar registro</button>
+      </form>
     </section>
   </main>
+  <script>
+  function mostrarAyuda(msg) {
+    document.getElementById("ayudaCampo").innerText = msg;
+  }
+  </script>
   <script type="module" src="dashboard.js"></script>
 </body>
 </html>

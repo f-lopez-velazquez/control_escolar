@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Vista Alumno</title>
+  <title>Vista Alumno - Control Escolar</title>
   <link rel="stylesheet" href="../styles.css" />
 </head>
 <body>
@@ -12,44 +12,34 @@
   </header>
   <main>
     <section>
-      <h3>Alumnos registrados</h3>
+      <label for="materiasSelect">Materia:</label>
       <select id="materiasSelect"></select>
+    </section>
+    <section>
+      <label for="filtroNumLista">Filtrar por número de lista:</label>
+      <input type="text" id="filtroNumLista" placeholder="Número de lista (opcional)" />
+      <button id="btnBuscar">Buscar</button>
+      <button id="btnLimpiar">Mostrar todos</button>
+    </section>
+    <section>
+      <h3>Resumen de alumnos</h3>
       <table id="tablaAlumnos">
         <thead>
           <tr>
-            <th>Número de lista</th>
+            <th>Lista</th>
             <th>Nombre</th>
-            <th>Equipo</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-    <section>
-      <h3>Equipos</h3>
-      <table id="tablaEquipos">
-        <thead>
-          <tr>
-            <th>Número de equipo</th>
-            <th>Encargado</th>
-            <th>Tareas</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-    <section>
-      <h3>Calificaciones</h3>
-      <table id="tablaCalificaciones">
-        <thead>
-          <tr>
-            <th>Número de lista</th>
-            <th>Nombre</th>
+            <th>P1 (Equipo)</th>
+            <th>P2 (Equipo)</th>
+            <th>P3 (Equipo)</th>
+            <th>P4 (Equipo)</th>
+            <th>Encargados</th>
             <th>P1</th>
             <th>P2</th>
             <th>P3</th>
             <th>P4</th>
             <th>Final</th>
+            <th>Deducciones</th>
+            <th>Extras</th>
           </tr>
         </thead>
         <tbody></tbody>
