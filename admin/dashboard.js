@@ -1,10 +1,10 @@
 import { db, auth } from "../firebase.js";
 import {
-  collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, updateDoc, setDoc, getDoc, arrayUnion
+  collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, updateDoc, setDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// Logout
+// ---- Logout ----
 document.getElementById("logoutBtn").onclick = async () => {
   await signOut(auth);
   window.location.href = "../index.html";
@@ -13,8 +13,16 @@ document.getElementById("logoutBtn").onclick = async () => {
 // --- Materias ---
 const materiaForm = document.getElementById("materiaForm");
 const materiasSelect = document.getElementById("materiasSelect");
+
 let currentMateria = null;
 let materiasList = [];
+
+// Actualiza la UI según la materia seleccionada
+function mostrarSeccionesMateria(show) {
+  ["seccionRubros", "seccionAlumnos", "seccionEquipos", "seccionParciales", "seccionFinal"].forEach(id => {
+    document.getElementById(id).style.display = show ? "" : "none";
+  });
+}
 
 const materiasCol = collection(db, "materias");
 onSnapshot(materiasCol, (snap) => {
@@ -31,6 +39,9 @@ onSnapshot(materiasCol, (snap) => {
     currentMateria = materiasList[0].id;
     materiasSelect.value = currentMateria;
     loadEverything();
+    mostrarSeccionesMateria(true);
+  } else {
+    mostrarSeccionesMateria(false);
   }
 });
 materiasSelect.onchange = () => {
@@ -40,384 +51,238 @@ materiasSelect.onchange = () => {
 
 materiaForm.onsubmit = async e => {
   e.preventDefault();
-  await addDoc(materiasCol, { nombre: materiaForm.nombreMateria.value });
+  await addDoc(materiasCol, { nombre: materiaForm.nombreMateria.value, rubrica: [] });
   materiaForm.reset();
+};
+
+// --- Rubros por materia ---
+const formRubro = document.getElementById("formRubro");
+const nombreRubro = document.getElementById("nombreRubro");
+const pesoRubro = document.getElementById("pesoRubro");
+const tipoRubro = document.getElementById("tipoRubro");
+const listaRubros = document.getElementById("listaRubros");
+const totalRubros = document.getElementById("totalRubros");
+
+let rubros = [];
+
+async function loadRubros() {
+  if (!currentMateria) return;
+  const materiaDoc = await getDoc(doc(db, "materias", currentMateria));
+  rubros = materiaDoc.exists() ? (materiaDoc.data().rubrica || []) : [];
+  renderRubros();
+}
+
+function renderRubros() {
+  listaRubros.innerHTML = "";
+  let total = 0;
+  rubros.forEach((r, idx) => {
+    total += Number(r.peso);
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <b>${r.nombre}</b> (${r.peso} pts, ${r.tipo === "ind" ? "Individual" : "Equipo"})
+      <button onclick="window.eliminarRubro(${idx})">🗑️</button>
+    `;
+    listaRubros.appendChild(li);
+  });
+  totalRubros.textContent = total;
+}
+window.eliminarRubro = async (idx) => {
+  rubros.splice(idx, 1);
+  await updateDoc(doc(db, "materias", currentMateria), { rubrica: rubros });
+  loadRubros();
+};
+
+formRubro.onsubmit = async e => {
+  e.preventDefault();
+  if (!currentMateria) return;
+  let peso = parseFloat(pesoRubro.value);
+  let total = rubros.reduce((acc, r) => acc + Number(r.peso), 0) + peso;
+  if (total > 10) {
+    alert("La suma de los rubros no puede exceder 10.");
+    return;
+  }
+  rubros.push({
+    nombre: nombreRubro.value,
+    peso,
+    tipo: tipoRubro.value
+  });
+  await updateDoc(doc(db, "materias", currentMateria), { rubrica: rubros });
+  formRubro.reset();
+  loadRubros();
+};
+
+// --- Alumnos ---
+const alumnoForm = document.getElementById("alumnoForm");
+const tablaAlumnos = document.getElementById("tablaAlumnos").querySelector("tbody");
+let alumnosList = [];
+
+async function loadAlumnos() {
+  if (!currentMateria) return;
+  const alumnosCol = collection(db, `materias/${currentMateria}/alumnos`);
+  onSnapshot(alumnosCol, (snap) => {
+    alumnosList = [];
+    tablaAlumnos.innerHTML = "";
+    snap.forEach(docu => {
+      let d = { id: docu.id, ...docu.data() };
+      alumnosList.push(d);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${d.numLista}</td>
+        <td>${d.nombreCompleto}</td>
+        <td><button onclick="window.eliminarAlumno('${d.id}')">🗑️</button></td>
+      `;
+      tablaAlumnos.appendChild(tr);
+    });
+  });
+}
+alumnoForm.onsubmit = async e => {
+  e.preventDefault();
+  if (!currentMateria) return;
+  const alumnosCol = collection(db, `materias/${currentMateria}/alumnos`);
+  await addDoc(alumnosCol, {
+    numLista: alumnoForm.numLista.value,
+    nombreCompleto: alumnoForm.nombreCompleto.value
+  });
+  alumnoForm.reset();
+};
+window.eliminarAlumno = async (id) => {
+  if (!currentMateria) return;
+  await deleteDoc(doc(db, `materias/${currentMateria}/alumnos`, id));
 };
 
 // --- Equipos ---
 const equipoForm = document.getElementById("equipoForm");
-const tablaEquipos = document.querySelector("#tablaEquipos tbody");
+const tablaEquipos = document.getElementById("tablaEquipos").querySelector("tbody");
 let equiposList = [];
-const loadEquipos = () => {
+
+async function loadEquipos() {
   if (!currentMateria) return;
   const equiposCol = collection(db, `materias/${currentMateria}/equipos`);
   onSnapshot(equiposCol, (snap) => {
     equiposList = [];
     tablaEquipos.innerHTML = "";
-    document.getElementById("filtroEquipo").innerHTML = '<option value="">Todos los equipos</option>';
     snap.forEach(docu => {
-      const d = { id: docu.id, ...docu.data() };
+      let d = { id: docu.id, ...docu.data() };
       equiposList.push(d);
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${d.equipoNum}</td>
         <td>${d.encargado}</td>
-        <td>${d.tareas ? d.tareas.join(", ") : ""}</td>
-        <td class="table-actions">
-          <button onclick="window.eliminarEquipo('${docu.id}')">🗑️</button>
-        </td>
+        <td>${d.trabajos ? JSON.stringify(d.trabajos) : ""}</td>
+        <td><button onclick="window.eliminarEquipo('${d.id}')">🗑️</button></td>
       `;
       tablaEquipos.appendChild(tr);
-
-      // Filtro de equipos
-      let opt = document.createElement("option");
-      opt.value = d.equipoNum;
-      opt.textContent = "Equipo " + d.equipoNum;
-      document.getElementById("filtroEquipo").appendChild(opt);
     });
   });
-};
+}
 equipoForm.onsubmit = async e => {
   e.preventDefault();
   if (!currentMateria) return;
-  const equipoNum = equipoForm.equipoNum.value;
-  const equipoDoc = await getDoc(doc(db, `materias/${currentMateria}/equipos`, equipoNum));
-  if (equipoDoc.exists()) {
-    toast("Ese número de equipo ya existe.", true);
-    return;
-  }
   const equiposCol = collection(db, `materias/${currentMateria}/equipos`);
-  await setDoc(doc(equiposCol, equipoNum), {
-    equipoNum,
+  await addDoc(equiposCol, {
+    equipoNum: equipoForm.equipoNum.value,
     encargado: equipoForm.encargado.value,
-    tareas: []
+    trabajos: {}
   });
   equipoForm.reset();
-  toast("Equipo agregado");
 };
 window.eliminarEquipo = async (id) => {
   if (!currentMateria) return;
-  // Valida que ningún alumno tenga asignado este equipo en ningún parcial
-  const alumnosSnap = await getDocs(collection(db, `materias/${currentMateria}/alumnos`));
-  for (let alumno of alumnosSnap.docs) {
-    const equipos = alumno.data().equipos || {};
-    for (let p of ["parcial1", "parcial2", "parcial3", "parcial4"]) {
-      if (equipos[p] == id) {
-        toast("No puedes eliminar este equipo: Hay alumnos asignados en algún parcial.", true);
-        return;
+  await deleteDoc(doc(db, `materias/${currentMateria}/equipos`, id));
+};
+
+// --- Parciales (Evaluación) ---
+const selectParcial = document.getElementById("selectParcial");
+const areaParcial = document.getElementById("areaParcial");
+
+selectParcial.onchange = loadParcial;
+async function loadParcial() {
+  if (!currentMateria) return;
+  let numParcial = selectParcial.value;
+  areaParcial.innerHTML = "";
+
+  // Tabla de alumnos y rubros (editable)
+  let html = `<table style="width:100%;max-width:1200px;"><thead><tr>
+    <th>Lista</th><th>Nombre</th>`;
+  rubros.forEach(r => { html += `<th>${r.nombre}<br>(${r.peso})</th>`; });
+  html += `<th>Equipo</th><th>Total</th><th>Acciones</th></tr></thead><tbody>`;
+  for (let alumno of alumnosList) {
+    html += `<tr><td>${alumno.numLista}</td><td>${alumno.nombreCompleto}</td>`;
+    for (let i = 0; i < rubros.length; i++) {
+      html += `<td><input style="width:60px" type="number" min="0" max="${rubros[i].peso}" step="0.1" 
+      value="" data-alumno="${alumno.id}" data-rubro="${i}" /></td>`;
+    }
+    html += `<td><input style="width:60px" type="number" min="1" step="1" placeholder="Eq" data-alumno-eq="${alumno.id}" /></td>`;
+    html += `<td id="total-${alumno.id}"></td>`;
+    html += `<td><button onclick="window.guardarParcial('${alumno.id}')">Guardar</button></td></tr>`;
+  }
+  html += `</tbody></table>`;
+  areaParcial.innerHTML = html;
+}
+
+window.guardarParcial = async (alumnoId) => {
+  if (!currentMateria) return;
+  let numParcial = selectParcial.value;
+  let inputs = areaParcial.querySelectorAll(`input[data-alumno="${alumnoId}"]`);
+  let eqInput = areaParcial.querySelector(`input[data-alumno-eq="${alumnoId}"]`);
+  let calif = {};
+  let total = 0;
+  for (let i = 0; i < inputs.length; i++) {
+    let v = Number(inputs[i].value);
+    calif[rubros[i].nombre] = v;
+    total += v;
+  }
+  let eq = eqInput.value || "";
+  calif.equipo = eq;
+  calif.total = total;
+  await setDoc(doc(db, `materias/${currentMateria}/parciales`, numParcial), {
+    [`alumnos.${alumnoId}`]: calif
+  }, { merge: true });
+  alert("Parcial guardado para el alumno " + alumnoId);
+};
+
+// --- Final ---
+const btnCalcularFinal = document.getElementById("btnCalcularFinal");
+const tablaFinal = document.getElementById("tablaFinal").querySelector("tbody");
+
+btnCalcularFinal.onclick = async () => {
+  if (!currentMateria) return;
+  let proms = {};
+  for (let alumno of alumnosList) {
+    let sum = 0, count = 0;
+    for (let i = 1; i <= 4; i++) {
+      const parcDoc = await getDoc(doc(db, `materias/${currentMateria}/parciales`, ""+i));
+      let calif = parcDoc.exists() && parcDoc.data().alumnos && parcDoc.data().alumnos[alumno.id];
+      if (calif && calif.total) {
+        sum += Number(calif.total);
+        count++;
       }
     }
+    proms[alumno.id] = count > 0 ? (sum / count).toFixed(2) : "";
   }
-  await deleteDoc(doc(db, `materias/${currentMateria}/equipos`, id));
-  toast("Equipo eliminado correctamente");
+  await setDoc(doc(db, `materias/${currentMateria}/final`, "alumnos"), proms, { merge: true });
+  renderFinal(proms);
 };
 
-// --- Alumnos ---
-const alumnoForm = document.getElementById("alumnoForm");
-const tablaAlumnos = document.querySelector("#tablaAlumnos tbody");
-const filtroEquipo = document.getElementById("filtroEquipo");
-const parcialAsignar = document.getElementById("parcialAsignar");
-let alumnosData = [];
-const loadAlumnos = () => {
-  if (!currentMateria) return;
-  const alumnosCol = collection(db, `materias/${currentMateria}/alumnos`);
-  onSnapshot(alumnosCol, (snap) => {
-    alumnosData = [];
-    tablaAlumnos.innerHTML = "";
-    snap.forEach(docu => {
-      const d = { id: docu.id, ...docu.data() };
-      alumnosData.push(d);
-    });
-
-    // Render alumnos
-    renderAlumnos();
-    updateAlumnosInEvaluacion();
-    updateAlumnosInDeduccion();
-  });
-};
-
-function renderAlumnos() {
-  tablaAlumnos.innerHTML = "";
-  let equipoFiltro = filtroEquipo.value;
-  alumnosData
-    .filter(a => {
-      if (!equipoFiltro) return true;
-      const eqs = a.equipos || {};
-      return Object.values(eqs).includes(equipoFiltro);
-    })
-    .forEach(d => {
-      const equiposStr = ["parcial1", "parcial2", "parcial3", "parcial4"]
-        .map(p => `<strong>${p.replace("parcial", "P")}:</strong> ${d.equipos && d.equipos[p] ? d.equipos[p] : "-"}`)
-        .join("<br>");
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${d.numLista}</td>
-        <td>${d.nombreCompleto}</td>
-        <td>${equiposStr}</td>
-        <td class="table-actions">
-          <button onclick="window.eliminarAlumno('${d.id}')">🗑️</button>
-        </td>
-      `;
-      tablaAlumnos.appendChild(tr);
-    });
-}
-window.eliminarAlumno = async (id) => {
-  if (!currentMateria) return;
-  await deleteDoc(doc(db, `materias/${currentMateria}/alumnos`, id));
-  toast("Alumno eliminado");
-};
-
-async function validarEquipoExistente(equipoNum) {
-  const equipoDoc = await getDoc(doc(db, `materias/${currentMateria}/equipos`, equipoNum));
-  return equipoDoc.exists();
-}
-
-// --- Agregar/Actualizar Alumno (por parcial) ---
-alumnoForm.onsubmit = async e => {
-  e.preventDefault();
-  if (!currentMateria) return;
-  const numLista = alumnoForm.numLista.value.trim();
-  const nombreCompleto = alumnoForm.nombreCompleto.value.trim();
-  const equipoNum = alumnoForm.numEquipo.value.trim();
-  const parcial = parcialAsignar.value;
-
-  if (!(await validarEquipoExistente(equipoNum))) {
-    toast("El equipo no existe. Primero créalo.", true);
-    return;
+async function renderFinal(proms) {
+  tablaFinal.innerHTML = "";
+  for (let alumno of alumnosList) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${alumno.numLista}</td><td>${alumno.nombreCompleto}</td><td>${proms[alumno.id] || ""}</td>`;
+    tablaFinal.appendChild(tr);
   }
-
-  const alumnosCol = collection(db, `materias/${currentMateria}/alumnos`);
-  const alumnosSnap = await getDocs(alumnosCol);
-  let found = null;
-  alumnosSnap.forEach(d => {
-    if (d.data().numLista === numLista) found = { id: d.id, ...d.data() };
-  });
-
-  if (found) {
-    let equipos = found.equipos || {};
-    equipos[parcial] = equipoNum;
-    await updateDoc(doc(alumnosCol, found.id), {
-      nombreCompleto,
-      equipos
-    });
-    toast("Alumno actualizado");
-  } else {
-    let equipos = {};
-    equipos[parcial] = equipoNum;
-    await addDoc(alumnosCol, {
-      numLista,
-      nombreCompleto,
-      equipos
-    });
-    toast("Alumno agregado");
-  }
-  alumnoForm.reset();
-};
-
-filtroEquipo.onchange = () => renderAlumnos();
-
-// --- Evaluaciones ---
-const evaluacionForm = document.getElementById("evaluacionForm");
-const tablaEvaluaciones = document.querySelector("#tablaEvaluaciones tbody");
-const alumnoEval = document.getElementById("alumnoEval");
-const parcialEval = document.getElementById("parcialEval");
-const calificacionEval = document.getElementById("calificacionEval");
-
-const loadEvaluaciones = async () => {
-  if (!currentMateria) return;
-  const alumnosCol = collection(db, `materias/${currentMateria}/alumnos`);
-  const evalsCol = collection(db, `materias/${currentMateria}/evaluaciones`);
-  onSnapshot(alumnosCol, (snap) => {
-    alumnoEval.innerHTML = "";
-    snap.forEach(docu => {
-      const d = docu.data();
-      const opt = document.createElement("option");
-      opt.value = docu.id;
-      opt.textContent = `${d.numLista} - ${d.nombreCompleto}`;
-      alumnoEval.appendChild(opt);
-    });
-  });
-  onSnapshot(evalsCol, async (snap) => {
-    tablaEvaluaciones.innerHTML = "";
-    const alumnosSnap = await getDocs(alumnosCol);
-    const deduccionesCol = collection(db, `materias/${currentMateria}/deducciones`);
-    const extrasCol = collection(db, `materias/${currentMateria}/extras`);
-    const deduccionesSnap = await getDocs(deduccionesCol);
-    const extrasSnap = await getDocs(extrasCol);
-
-    alumnosSnap.forEach(docu => {
-      const d = docu.data();
-      const evalDoc = snap.docs.find(e => e.id === docu.id);
-      const evals = evalDoc ? evalDoc.data() : {};
-      const parciales = [
-        evals.parcial1 || 0, evals.parcial2 || 0,
-        evals.parcial3 || 0, evals.parcial4 || 0
-      ];
-      const final = (
-        (parciales[0] + parciales[1] + parciales[2] + parciales[3]) / 4
-      ).toFixed(2);
-
-      // Deducciones y extras por alumno
-      let deducciones = [];
-      let extras = [];
-      deduccionesSnap.forEach(dd => {
-        if (dd.data().alumnoId === docu.id) deducciones.push(dd.data());
-      });
-      extrasSnap.forEach(dd => {
-        if (dd.data().alumnoId === docu.id) extras.push(dd.data());
-      });
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${d.numLista}</td>
-        <td>${d.nombreCompleto}</td>
-        <td>${parciales[0]}</td>
-        <td>${parciales[1]}</td>
-        <td>${parciales[2]}</td>
-        <td>${parciales[3]}</td>
-        <td>${final}</td>
-        <td>
-          ${deducciones.map(de => `
-            <div class="deduccion-row">${de.parcial}: -${de.cantidad} (${de.motivo})<br><span style="font-size:0.89em">${de.fecha}</span></div>
-          `).join("")}
-        </td>
-        <td>
-          ${extras.map(ex => `
-            <div class="extra-row">${ex.parcial}: +${ex.cantidad} (${ex.motivo})<br><span style="font-size:0.89em">${ex.fecha}</span></div>
-          `).join("")}
-        </td>
-        <td class="table-actions"></td>
-      `;
-      tablaEvaluaciones.appendChild(tr);
-    });
-  });
-};
-evaluacionForm.onsubmit = async e => {
-  e.preventDefault();
-  if (!currentMateria) return;
-  const evalsCol = collection(db, `materias/${currentMateria}/evaluaciones`);
-  await setDoc(doc(evalsCol, alumnoEval.value), {
-    [parcialEval.value]: Number(calificacionEval.value)
-  }, { merge: true });
-  evaluacionForm.reset();
-  toast("Calificación registrada");
-};
-function updateAlumnosInEvaluacion() {
-  alumnoEval.innerHTML = "";
-  alumnosData.forEach(a => {
-    const opt = document.createElement("option");
-    opt.value = a.id;
-    opt.textContent = `${a.numLista} - ${a.nombreCompleto}`;
-    alumnoEval.appendChild(opt);
-  });
 }
 
-// --- Deducciones y extras ---
-const formDeduccion = document.getElementById("formDeduccion");
-const alumnoDeduccion = document.getElementById("alumnoDeduccion");
-const parcialDeduccion = document.getElementById("parcialDeduccion");
-const cantidadDeduccion = document.getElementById("cantidadDeduccion");
-const motivoDeduccion = document.getElementById("motivoDeduccion");
-const tipoDeduccion = document.getElementById("tipoDeduccion");
-
-function updateAlumnosInDeduccion() {
-  alumnoDeduccion.innerHTML = "";
-  alumnosData.forEach(a => {
-    const opt = document.createElement("option");
-    opt.value = a.id;
-    opt.textContent = `${a.numLista} - ${a.nombreCompleto}`;
-    alumnoDeduccion.appendChild(opt);
-  });
-}
-
-formDeduccion.onsubmit = async e => {
-  e.preventDefault();
-  if (!currentMateria) return;
-  const id = alumnoDeduccion.value;
-  const parcial = parcialDeduccion.value;
-  const cantidad = Number(cantidadDeduccion.value);
-  const motivo = motivoDeduccion.value;
-  const fecha = new Date().toLocaleDateString("es-MX") + " " + new Date().toLocaleTimeString("es-MX");
-  const col = tipoDeduccion.value === "deduccion"
-    ? collection(db, `materias/${currentMateria}/deducciones`)
-    : collection(db, `materias/${currentMateria}/extras`);
-  await addDoc(col, {
-    alumnoId: id,
-    parcial,
-    cantidad: Math.abs(cantidad),
-    motivo,
-    fecha
-  });
-  formDeduccion.reset();
-  toast("Registro guardado");
-};
-
-// --- Exportar PDF ---
-import jsPDF from "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.es.min.js";
-import autoTable from "https://cdn.jsdelivr.net/npm/jspdf-autotable@3.7.0/dist/jspdf.plugin.autotable.min.js";
+// --- PDF export (básico) ---
 document.getElementById("btnPdf").onclick = async () => {
   if (!currentMateria) return;
-  toast("Generando PDF...");
-  // Consigue info
-  const alumnosCol = collection(db, `materias/${currentMateria}/alumnos`);
-  const evalsCol = collection(db, `materias/${currentMateria}/evaluaciones`);
-  const alumnosSnap = await getDocs(alumnosCol);
-  const evalsSnap = await getDocs(evalsCol);
-
-  // Estructura para tabla
-  const rows = [];
-  alumnosSnap.forEach(docu => {
-    const d = docu.data();
-    const evalDoc = evalsSnap.docs.find(e => e.id === docu.id);
-    const evals = evalDoc ? evalDoc.data() : {};
-    const parciales = [
-      evals.parcial1 || 0, evals.parcial2 || 0,
-      evals.parcial3 || 0, evals.parcial4 || 0
-    ];
-    const final = (
-      (parciales[0] + parciales[1] + parciales[2] + parciales[3]) / 4
-    ).toFixed(2);
-    rows.push([
-      d.numLista, d.nombreCompleto,
-      parciales[0], parciales[1], parciales[2], parciales[3], final, ""
-    ]);
-  });
-
-  // PDF
-  const docpdf = new jsPDF({ orientation: "landscape" });
-  docpdf.setFontSize(14);
-  docpdf.text("Lista de Alumnos - " + materiasSelect.options[materiasSelect.selectedIndex].text, 14, 16);
-
-  autoTable(docpdf, {
-    head: [[
-      "Núm.", "Nombre",
-      "P1", "P2", "P3", "P4", "Final", "Firma"
-    ]],
-    body: rows,
-    startY: 22,
-    styles: { cellPadding: 3, fontSize: 11 },
-    columnStyles: { 7: { cellWidth: 38 } }
-  });
-
-  docpdf.save("lista-alumnos.pdf");
-  toast("PDF generado");
+  alert("Función PDF pendiente: aquí puedes integrar jsPDF o Table2Excel usando la estructura de la tabla final.");
 };
 
-// --- Toast feedback ---
-window.toast = function (msg, error) {
-  let t = document.createElement("div");
-  t.className = "toast";
-  t.style.background = error ? "#b71c1c" : "#1976d2";
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2300);
-}
-
-// --- Carga inicial ---
+// --- Carga global ---
 function loadEverything() {
+  loadRubros();
   loadAlumnos();
   loadEquipos();
-  loadEvaluaciones();
+  loadParcial();
 }
-
-loadEverything();

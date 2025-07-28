@@ -15,103 +15,80 @@
     <section>
       <h3>Materias</h3>
       <form id="materiaForm">
-        <input type="text" id="nombreMateria" placeholder="Nombre de la materia" required onfocus="mostrarAyuda('Escribe el nombre de la materia.')" />
+        <input type="text" id="nombreMateria" placeholder="Nombre de la materia" required />
         <button type="submit">Agregar Materia</button>
       </form>
       <select id="materiasSelect"></select>
     </section>
-    <section>
+    <section id="seccionRubros" style="display:none;">
+      <h3>Rúbrica (total: <span id="totalRubros">0</span> pts)</h3>
+      <form id="formRubro">
+        <input type="text" id="nombreRubro" placeholder="Nombre del rubro" required />
+        <input type="number" id="pesoRubro" step="0.1" placeholder="Valor (ej: 2.5)" required />
+        <select id="tipoRubro">
+          <option value="ind">Individual</option>
+          <option value="eq">Equipo</option>
+        </select>
+        <button type="submit">Agregar rubro</button>
+      </form>
+      <ul id="listaRubros"></ul>
+    </section>
+    <section id="seccionAlumnos" style="display:none;">
       <h3>Alumnos</h3>
       <form id="alumnoForm">
-        <input type="text" id="numLista" placeholder="Número de lista" required onfocus="mostrarAyuda('Número único de alumno.')" />
-        <input type="text" id="nombreCompleto" placeholder="Nombre completo" required onfocus="mostrarAyuda('Nombre del alumno.')" />
-        <input type="number" id="numEquipo" placeholder="Equipo (debe existir)" required onfocus="mostrarAyuda('Solo puedes asignar equipos existentes.')" />
-        <select id="parcialAsignar">
-          <option value="parcial1">Parcial 1</option>
-          <option value="parcial2">Parcial 2</option>
-          <option value="parcial3">Parcial 3</option>
-          <option value="parcial4">Parcial 4</option>
-        </select>
-        <button type="submit">Agregar/Actualizar Alumno</button>
+        <input type="text" id="numLista" placeholder="Número de lista" required />
+        <input type="text" id="nombreCompleto" placeholder="Nombre completo" required />
+        <button type="submit">Agregar Alumno</button>
       </form>
-      <div id="ayudaCampo" class="ayuda-campo"></div>
-      <select id="filtroEquipo"><option value="">Todos los equipos</option></select>
       <table id="tablaAlumnos">
         <thead>
           <tr>
-            <th>Lista</th><th>Nombre</th><th>Equipos (por parcial)</th><th>Acciones</th>
+            <th>Lista</th><th>Nombre</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
     </section>
-    <section>
+    <section id="seccionEquipos" style="display:none;">
       <h3>Equipos</h3>
       <form id="equipoForm">
-        <input type="number" id="equipoNum" placeholder="Número de equipo" required onfocus="mostrarAyuda('Número del equipo, debe ser único.')" />
-        <input type="text" id="encargado" placeholder="Encargado" required onfocus="mostrarAyuda('Nombre del encargado de equipo.')" />
+        <input type="number" id="equipoNum" placeholder="Número de equipo" required />
+        <input type="text" id="encargado" placeholder="Encargado" required />
         <button type="submit">Agregar Equipo</button>
       </form>
       <table id="tablaEquipos">
         <thead>
           <tr>
-            <th>Equipo</th><th>Encargado</th><th>Tareas</th><th>Acciones</th>
+            <th>Equipo</th><th>Encargado</th><th>Trabajos</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
     </section>
-    <section>
-      <h3>Evaluaciones</h3>
-      <form id="evaluacionForm">
-        <select id="alumnoEval"></select>
-        <select id="parcialEval">
-          <option value="parcial1">Parcial 1</option>
-          <option value="parcial2">Parcial 2</option>
-          <option value="parcial3">Parcial 3</option>
-          <option value="parcial4">Parcial 4</option>
-        </select>
-        <input type="number" id="calificacionEval" placeholder="Calificación (0-10)" min="0" max="10" step="0.1" required />
-        <button type="submit">Registrar Calificación</button>
-      </form>
-      <table id="tablaEvaluaciones">
+    <section id="seccionParciales" style="display:none;">
+      <h3>Parciales</h3>
+      <select id="selectParcial">
+        <option value="1">Parcial 1</option>
+        <option value="2">Parcial 2</option>
+        <option value="3">Parcial 3</option>
+        <option value="4">Parcial 4</option>
+      </select>
+      <div id="areaParcial"></div>
+    </section>
+    <section id="seccionFinal" style="display:none;">
+      <h3>Promedio Final</h3>
+      <button id="btnCalcularFinal">Calcular Promedios</button>
+      <table id="tablaFinal">
         <thead>
           <tr>
-            <th>Lista</th><th>Nombre</th>
-            <th>P1</th><th>P2</th><th>P3</th><th>P4</th>
-            <th>Final</th><th>Deducciones</th><th>Extras</th>
-            <th>Acciones</th>
+            <th>Lista</th><th>Nombre</th><th>Promedio Final</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
       <button class="btn-pdf" id="btnPdf">Exportar PDF (A4)</button>
     </section>
-    <section>
-      <h3>Deducciones y puntos extra</h3>
-      <form id="formDeduccion">
-        <select id="alumnoDeduccion"></select>
-        <select id="parcialDeduccion">
-          <option value="parcial1">Parcial 1</option>
-          <option value="parcial2">Parcial 2</option>
-          <option value="parcial3">Parcial 3</option>
-          <option value="parcial4">Parcial 4</option>
-        </select>
-        <input type="number" id="cantidadDeduccion" placeholder="Cantidad (+ o -)" required />
-        <input type="text" id="motivoDeduccion" placeholder="Motivo" required />
-        <select id="tipoDeduccion">
-          <option value="deduccion">Deducción (resta)</option>
-          <option value="extra">Punto extra (suma)</option>
-        </select>
-        <button type="submit">Agregar registro</button>
-      </form>
-    </section>
   </main>
-  <script>
-  function mostrarAyuda(msg) {
-    document.getElementById("ayudaCampo").innerText = msg;
-  }
-  </script>
   <script type="module" src="dashboard.js"></script>
 </body>
 </html>
